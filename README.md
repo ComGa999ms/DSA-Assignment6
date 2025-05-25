@@ -90,11 +90,159 @@ for (int i = 1; i <= n1; ++i) {
 cout << res;
 ```
 ## Tìm đường đi trên đồ thi (BFS)	
+Bài này bfs sau đó trace lại đường đi từ u -> v
+```C++
+void BFS(char source, char sink) {
+    map <char, bool> used;
+    map <char, char> trace;
+    queue <char> q;
 
+    for (auto T : adj) used[T.first] = 0;
+    
+    q.push(source);
+    trace[source] = '\0';
+
+    while (q.size()) {
+        char u = q.front(); q.pop();
+
+        if (adj.find(u) != adj.end()) {
+            for (char v : adj[u]) {
+                if (!used[v]) {
+                    used[v] = 1;
+                    trace[v] = u;
+                    q.push(v);
+
+                    if (v == sink) {
+                        vii path;
+                        char node = sink;
+
+                        path.push_back(sink);
+                        while (trace[node] != source) {
+                            node = trace[node];
+                            path.push_back(node);
+                        }
+                        path.push_back(source);
+                    
+                        repd(i, sz(path) - 1, 0) cout << path[i] << ' '; cout << endl;
+                        return ;
+                    }
+                }
+            }
+        }
+    }
+    cout << "no_path" << endl;
+}
+```
 ## Tìm đường đi trên đồ thi (DFS)	
+Bài này dfs sau đó trace lại đường đi từ u -> v. Nhưng trong các đường đi thì chúng ta update chỉ lấy đường đi ngắn nhất.
+```C++
+void dfs(int u, int en) {
+    vis[u] = 1;
+    path.push_back(b[u]);
+
+    if (u == en) {          
+        // repd(i, sz(path) - 1, 0) cout << path[i] << ' '; cout << endl;
+        if (sz(res) > sz(path) || sz(res) == 0) res = path;
+        ok = 1;
+    }
+    for (int v : adj[u]) if (!vis[v]) {
+        dfs(v, en);
+    }
+
+    vis[u] = 0;
+    path.pop_back();
+}
+```
 ## khangtd.ConnectedComponents	
+Bài này đơn giản là BFS từ đỉnh $S$ sau đó in ra size thành phần liên thông BFS từ $S$.
 ## Đồ thị vô hướng - Đếm số đỉnh cô lập	
+Bài này check đỉnh cô lập.
+```C++
+int res = 0;
+for (int i = 0; i < n; ++i) {
+    if (sz(adj[i]) == 0) ++res;
+}
+```
 ## Đồ thị vô hướng - Đếm số thành phần liên thông	
+Bài này đếm số thành phần liên thông bằng cách duyệt qua các đỉnh chưa được duyệt và bfs từ đỉnh đó.
+```C++
+int res = 0;
+rep(i, 0, n - 1) if (!vis[i]) bfs(i), ++res;
+    
+cout << res;
+```
 ## Đồ thị vô hướng - Liệt kê các đỉnh có thể tới từ đỉnh S
+Bài này BFS từ đỉnh $0$ và sau đó in ra các đỉnh nằm trong thành phần liên thông của đỉnh $0$ này. 
 ## Đồ thị vô hướng - Kiểm tra có đường đi từ đỉnh S tới đỉnh E	
+Bài này bfs từ đỉnh $0$ và in ra cạnh đỉnh nào không nằm trong thành phần liên thông của $0$.
 ## Wildcard	
+Bài này chúng ta có dễ dàng nhìn thấy bài này sử dụng Trie do bài là đếm các xâu khớp với * là chuỗi bất kì. Nhưng ở đây chúng ta lưu thêm một vector lưu các vị trí khớp.
+```C++
+struct Trie {
+    map<char, Trie*> cnt;
+    vii labels;
+    
+    void Insert(const string &s, int id, int pos = 0) {
+        if (pos < sz(s)) {
+            char c = s[pos];
+            if (!cnt.count(c)) cnt[c] = new Trie();
+            cnt[c]->Insert(s, id, pos + 1);
+        }
+        labels.push_back(id);
+    }
+    
+    vii Find(const string &s, int pos = 0) {
+        if (pos == sz(s)) return labels;
+        char c = s[pos];
+        if (!cnt.count(c)) return {};
+        return cnt[c]->Find(s, pos + 1);
+    }
+};
+```
+
+Tới đây có 3 trường hợp 
+```C++
+string t; getline(cin, t);
+int pos = t.find('*');
+        
+// TH Không có dấu *
+if (pos == -1) {
+    cout << cnt[t] << endl;
+    continue;
+}
+        
+// chia ra 2 xâu con
+string pre = t.substr(0, pos);
+string suf = t.substr(pos + 1);
+        
+// TH *
+if (!sz(pre) && !sz(suf)) {
+    cout << n << endl;
+    continue;
+}
+        
+vii res;
+       
+// TH prefix *
+if (!sz(suf)) {
+    cout << sz(preTrie.Find(pre)) << endl;
+    continue ;
+} 
+
+// TH * suf
+if (!sz(pre)) {
+    reverse(all(suf));
+    cout << sz(sufTrie.Find(suf)) << endl;
+    continue;
+}  
+
+// TH prefix * suf 
+res = preTrie.Find(pre);
+
+vii candidates;
+for (int i : res) {
+    if (sz(s[i]) >= sz(pre) + sz(suf) && s[i].substr(sz(s[i]) - sz(suf)) == suf) candidates.push_back(i);
+}
+
+cout << sz(candidates) << endl;
+```
