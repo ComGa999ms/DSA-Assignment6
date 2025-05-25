@@ -3,12 +3,8 @@
 #define int long long
 #define rep(i, l, r) for (int i = l; i <= r; ++i)
 #define repd(i, r, l) for (int i = r; i >= l; --i)
-#define _unique(x) (x).resize(unique((x).begin(), (x).end()) - (x).begin());
 #define sz(v) (int)(v).size()
-#define fi first
-#define se second
-#define pii pair<int,int>
-#define p2i pair<int,pii>
+#define vii vector <char>
 #define endl "\n"
 
 using namespace std;
@@ -17,75 +13,81 @@ const int N = 1e6 + 5;
 const int inf = 1e18 + 7;
 const bool multitest = 0;
 
+map <char, vii> adj;
+
 int n, m;
-map <char, int> e;
-vector <int> adj[N];
-char b[N];
-bool vis[N];
-int trace[N];
+vii e;
 
-void bfs(int sta, int en) {
-    if (sta == en) {
-        cout << b[sta] << endl;
-        return;
-    }
+void BFS(char source, char sink) {
+    map <char, bool> used;
+    map <char, char> trace;
+    queue <char> q;
 
-    queue <int> q;
-    q.push(sta);
-
-    rep(i, 1, n) vis[i] = 0;
-    vis[sta] = 1;
-    trace[sta] = -1;
+    for (auto T : adj) used[T.first] = 0;
+    
+    q.push(source);
+    trace[source] = '\0';
 
     while (q.size()) {
-        int u = q.front(); q.pop();
-        
-        for (int v : adj[u]) {
-            if (!vis[v]) {
-                q.push(v);
-                trace[v] = u;
-                vis[v] = 1;
+        char u = q.front(); q.pop();
+
+        if (adj.find(u) != adj.end()) {
+            for (char v : adj[u]) {
+                if (!used[v]) {
+                    used[v] = 1;
+                    trace[v] = u;
+                    q.push(v);
+
+                    if (v == sink) {
+                        vii path;
+                        char node = sink;
+
+                        path.push_back(sink);
+                        while (trace[node] != source) {
+                            node = trace[node];
+                            path.push_back(node);
+                        }
+                        path.push_back(source);
+                    
+                        repd(i, sz(path) - 1, 0) cout << path[i] << ' '; cout << endl;
+                        return ;
+                    }
+                }
             }
         }
     }
-
-    if (!vis[en]) {
-        cout << "no_path";
-        return;
-    }
-
-    vector <char> res;
-    int i = en;
-    while (i != -1) {
-        // cout << b[i] << ' ';
-        res.push_back(b[i]);
-        i = trace[i];
-    }
-
-    repd(i, sz(res) - 1, 0) cout << res[i] << ' ';
-    cout << endl;
+    cout << "no_path" << endl;
 }
 
 void solve(void) {
     cin >> n >> m;
+    
     rep(i, 1, n) {
-        cin >> b[i];
-        e[b[i]] = i;
+        char c; cin >> c;
+        e.push_back(c);
     }
+    
+    for (auto T : e) adj[T].clear();
     rep(i, 1, m) {
         char u, v;
         cin >> u >> v;
-        adj[e[u]].push_back(e[v]);
-        // adj[e[v]].push_back(e[u]);
+
+        adj[u].push_back(v);
     }
 
-    int ntest; cin >> ntest;
-    while (ntest-- ) {
-        char x, y;
-        cin >> x >> y;
+    int ntest;
+    cin >> ntest;
 
-        // cout << e[x] << ' ' << e[y] << endl; 
-        bfs(e[x], e[y]);
+    while (ntest-- ) {
+        char u, v;
+        cin >> u >> v;
+        
+        if (adj.find(u) == adj.end() || adj.find(v) == adj.end()) {
+            cout << "no_path" << endl;
+            continue;
+        }
+
+        BFS(u, v);
     }
 }
 
@@ -94,7 +96,7 @@ signed main() {
 
     if (multitest) {
         int t; cin >> t;
-        while (t-- ) solve();
+        while (t--) solve();
     } else solve();
 
     return 0;
